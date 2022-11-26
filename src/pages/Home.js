@@ -1,29 +1,63 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 // import Filters from '../components/Filters';
-import useFetch from '../hook/useFetch';
+// import useFetch from '../hook/useFetch';
 
 function Home() {
-  const { tableList, planetList } = useFetch();
+  // const { tableList, planetList } = useFetch();
   const [search, setSearch] = useState('');
   const [select, setSelect] = useState('population');
   const [op, setOp] = useState('maior que');
   const [num, setNum] = useState('0');
+  // const [um, setUm] = useState([]);
 
-  let filterByName = planetList;
-  if (op === 'maior que') {
-    filterByName = planetList
-      .filter((el) => el.name.includes(search))
-      .filter((el) => parseInt(el[select], 10) > num);
-  } else if (op === 'menor que') {
-    filterByName = planetList
-      .filter((el) => el.name.includes(search))
-      .filter((el) => parseInt(el[select], 10) < num);
-  } else if (op === 'igual a') {
-    filterByName = planetList
-      .filter((el) => el.name.includes(search))
-      .filter((el) => parseInt(el[select], 10) === parseInt(num, 10));
-  }
+  // console.log(tt);
 
+  const [planetList, setPlanetList] = useState([]);
+  const [tableList, setTableList] = useState([]);
+
+  useEffect(() => {
+    const fetchPlanetList = async () => {
+      try {
+        const url = 'https://swapi.dev/api/planets';
+        const response = await fetch(url);
+        const list = await response.json();
+        const lists = list.results;
+        lists.map((del) => delete del.residents);
+        const filtered = Object.keys(lists[0]);
+        setTableList(filtered);
+        setPlanetList(lists);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchPlanetList();
+  }, []);
+
+  let filterByName = planetList.filter((el) => el.name.includes(search));
+  useEffect(() => {
+    // filterByName = planetList.filter((el) => el.name.includes(search));
+    setPlanetList(filterByName);
+  }, []);
+
+  const click = () => {
+    if (op === 'maior que') {
+      filterByName = planetList
+        // .filter((el) => el.name.includes(search))
+        .filter((el) => parseInt(el[select], 10) > num);
+    } if (op === 'menor que') {
+      filterByName = planetList
+        // .filter((el) => el.name.includes(search))
+        .filter((el) => parseInt(el[select], 10) < num);
+    } if (op === 'igual a') {
+      filterByName = planetList
+        // .filter((el) => el.name.includes(search))
+        .filter((el) => parseInt(el[select], 10) === parseInt(num, 10));
+    }
+    setPlanetList(filterByName);
+    console.log('ola', planetList);
+  };
+
+  console.log(filterByName);
   const selTwo = ['maior que', 'menor que', 'igual a'];
   const selOne = ['population', 'orbital_period',
     'diameter', 'rotation_period', 'surface_water'];
@@ -60,6 +94,7 @@ function Home() {
           <button
             type="button"
             data-testid="button-filter"
+            onClick={ click }
           >
             Filtrar
           </button>

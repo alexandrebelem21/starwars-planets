@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-// import Filters from '../components/Filters';
+// import Filters from './components/Filters';
 // import useFetch from '../hook/useFetch';
 
 function Home() {
@@ -8,13 +8,16 @@ function Home() {
   const [select, setSelect] = useState('population');
   const [op, setOp] = useState('maior que');
   const [num, setNum] = useState('0');
-  // const [um, setUm] = useState([]);
+  const [fil, setFil] = useState([]);
+  const [selOne, setSelOne] = useState(['population', 'orbital_period',
+    'diameter', 'rotation_period', 'surface_water']);
+  const selTwo = ['maior que', 'menor que', 'igual a'];
 
-  // console.log(tt);
+  const [listas, setListas] = useState([]); // Lista que controla tudo
+  const [selFilter, setSelFilter] = useState([]);
 
   const [planetList, setPlanetList] = useState([]);
   const [tableList, setTableList] = useState([]);
-
   useEffect(() => {
     const fetchPlanetList = async () => {
       try {
@@ -33,34 +36,60 @@ function Home() {
     fetchPlanetList();
   }, []);
 
-  let filterByName = planetList.filter((el) => el.name.includes(search));
+  const data = fil.length === 0 ? planetList : fil;
+  // console.log('data', data);
+  // let filterByName = planetList.filter((el) => el.name.includes(search));
+  // let filterByName = planetList;
   useEffect(() => {
-    // filterByName = planetList.filter((el) => el.name.includes(search));
-    setPlanetList(filterByName);
-  }, []);
-
+    setListas(data.filter((el) => el.name.includes(search)));
+    setSelect(selOne[0]);
+  }, [search, data, selOne]);
+  let dts = data;
   const click = () => {
+    setSelFilter([...selFilter, { select, op, num }]);
     if (op === 'maior que') {
-      filterByName = planetList
-        // .filter((el) => el.name.includes(search))
-        .filter((el) => parseInt(el[select], 10) > num);
+      dts = dts.filter((el) => +el[select] > num);
     } if (op === 'menor que') {
-      filterByName = planetList
-        // .filter((el) => el.name.includes(search))
-        .filter((el) => parseInt(el[select], 10) < num);
-    } if (op === 'igual a') {
-      filterByName = planetList
-        // .filter((el) => el.name.includes(search))
-        .filter((el) => parseInt(el[select], 10) === parseInt(num, 10));
+      dts = dts.filter((el) => +el[select] < num);
+    } else if (op === 'igual a') {
+      dts = dts.filter((el) => +el[select] === +num);
     }
-    setPlanetList(filterByName);
-    console.log('ola', planetList);
+
+    setSelOne(selOne.filter((del) => del !== select));
+    setSelect(selOne[0]);
+    setFil(dts);
+    setListas(dts);
   };
 
-  console.log(filterByName);
-  const selTwo = ['maior que', 'menor que', 'igual a'];
-  const selOne = ['population', 'orbital_period',
-    'diameter', 'rotation_period', 'surface_water'];
+  const rmvFilter = (e) => {
+    if (selFilter.length === 1) {
+      setSelFilter([]);
+      setListas([]);
+      setFil([]);
+      setSelOne(['population', 'rotation_period',
+        'orbital_period', 'surface_water', 'diameter']);
+    } else {
+      const a = selFilter.filter((del) => del.select !== e.target.id);
+      setSelFilter(a);
+      a.forEach((elem) => {
+        if (elem.op === 'maior que') {
+          setListas(planetList.filter((el) => +el[elem.select] > elem.num));
+        } if (elem.op === 'menor que') {
+          setListas(planetList.filter((el) => +el[elem.select] < elem.num));
+        } else if (elem.op === 'igual a') {
+          setListas(planetList.filter((el) => +el[elem.select] === +elem.num));
+        }
+      });
+    }
+  };
+
+  const removeAllFilters = () => {
+    setFil([]);
+    setSelFilter([]);
+    setSelOne(['population', 'rotation_period',
+      'orbital_period', 'surface_water', 'diameter']);
+    setListas([]);
+  };
 
   return (
     <div>
@@ -99,6 +128,52 @@ function Home() {
             Filtrar
           </button>
         </div>
+        <div>
+          {selFilter.map((el) => (
+            <p
+              key={ el.select }
+              data-testid="filter"
+            >
+              { el.select }
+              {' '}
+              { el.op }
+              {' '}
+              { el.num }
+              <button
+                id={ el.select }
+                type="button"
+                onClick={ rmvFilter }
+              >
+                Remover Filtros
+              </button>
+            </p>
+          ))}
+          {/* <div>
+            <select
+              data-testid="column-sort"
+              onChange={ (e) => setSelect(e.target.value) }
+            >
+              {selOne
+                .map((sel) => (
+                  <option key={ sel }>{ sel }</option>
+                ))}
+            </select>
+            <div>
+              <input
+                type="radio"
+                data-testid="column-sort-input-asc"
+              />
+            </div>
+          </div> */}
+        </div>
+        {fil.length > 0 && (
+          <button
+            data-testid="button-remove-filters"
+            type="button"
+            onClick={ removeAllFilters }
+          >
+            Remover todas filtragens
+          </button>)}
       </div>
       <div>
         <input
@@ -122,7 +197,7 @@ function Home() {
           </thead>
           <tbody>
             {
-              filterByName.map((planets) => (
+              listas.map((planets) => (
                 <tr key={ planets.name }>
                   {
                     Object.values(planets)

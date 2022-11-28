@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
-// import Filters from './components/Filters';
-// import useFetch from '../hook/useFetch';
 
 function Home() {
-  // const { tableList, planetList } = useFetch();
   const [search, setSearch] = useState('');
   const [select, setSelect] = useState('population');
   const [op, setOp] = useState('maior que');
@@ -12,10 +9,9 @@ function Home() {
   const [selOne, setSelOne] = useState(['population', 'orbital_period',
     'diameter', 'rotation_period', 'surface_water']);
   const selTwo = ['maior que', 'menor que', 'igual a'];
-
+  const [order, setOrder] = useState('ASC');
   const [listas, setListas] = useState([]); // Lista que controla tudo
   const [selFilter, setSelFilter] = useState([]);
-
   const [planetList, setPlanetList] = useState([]);
   const [tableList, setTableList] = useState([]);
   useEffect(() => {
@@ -37,9 +33,6 @@ function Home() {
   }, []);
 
   const data = fil.length === 0 ? planetList : fil;
-  // console.log('data', data);
-  // let filterByName = planetList.filter((el) => el.name.includes(search));
-  // let filterByName = planetList;
   useEffect(() => {
     setListas(data.filter((el) => el.name.includes(search)));
     setSelect(selOne[0]);
@@ -90,11 +83,24 @@ function Home() {
       'orbital_period', 'surface_water', 'diameter']);
     setListas([]);
   };
+  const ONE = -1;
+  const orderClick = (orders) => {
+    if (orders === 'DESC') {
+      setFil(listas.sort((a, b) => {
+        if (b[select] === 'unknown') return ONE;
+        return +b[select] - +a[select];
+      }));
+    } else {
+      setFil(listas.sort((a, b) => {
+        if (b[select] === 'unknown') return ONE;
+        return +a[select] - +b[select];
+      }));
+    }
+  };
 
   return (
     <div>
       <div>
-        {/* <Filters /> */}
         <div>
           <select
             data-testid="column-filter"
@@ -148,7 +154,7 @@ function Home() {
               </button>
             </p>
           ))}
-          {/* <div>
+          <div>
             <select
               data-testid="column-sort"
               onChange={ (e) => setSelect(e.target.value) }
@@ -158,13 +164,28 @@ function Home() {
                   <option key={ sel }>{ sel }</option>
                 ))}
             </select>
-            <div>
-              <input
-                type="radio"
-                data-testid="column-sort-input-asc"
-              />
-            </div>
-          </div> */}
+            <input
+              type="radio"
+              data-testid="column-sort-input-asc"
+              value="ASC"
+              name="aaa"
+              onChange={ (e) => setOrder(e.target.value) }
+            />
+            <input
+              type="radio"
+              data-testid="column-sort-input-desc"
+              value="DESC"
+              name="aaa"
+              onChange={ (e) => setOrder(e.target.value) }
+            />
+            <button
+              type="button"
+              data-testid="column-sort-button"
+              onClick={ () => orderClick(order) }
+            >
+              Ordenar
+            </button>
+          </div>
         </div>
         {fil.length > 0 && (
           <button
@@ -197,16 +218,21 @@ function Home() {
           </thead>
           <tbody>
             {
-              listas.map((planets) => (
-                <tr key={ planets.name }>
-                  {
-                    Object.values(planets)
-                      .map((el) => (
-                        <th key={ el.name }>
-                          { el }
-                        </th>
-                      ))
-                  }
+              listas.map((el) => (
+                <tr key={ el.name }>
+                  <td data-testid="planet-name">{el.name}</td>
+                  <td>{el.rotation_period}</td>
+                  <td>{el.orbital_period}</td>
+                  <td>{el.diameter}</td>
+                  <td>{el.climate}</td>
+                  <td>{el.gravity}</td>
+                  <td>{el.terrain}</td>
+                  <td>{el.surface_water}</td>
+                  <td>{el.population}</td>
+                  <td>{el.films.map((element) => `${element}`)}</td>
+                  <td>{el.created}</td>
+                  <td>{el.edited}</td>
+                  <td>{el.url}</td>
                 </tr>
               ))
             }
